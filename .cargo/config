@@ -1,0 +1,1 @@
+rustflags = ["-A dead_code", "-A unused_imports"]
