@@ -1,4 +1,3 @@
-use std::boxed::Box;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -20,19 +19,16 @@ impl Node {
 }
 
 #[derive(Debug, Clone)]
-pub struct SinglyLinkedList {
+pub struct TransactionLog {
     head: Link,
     tail: Link,
     pub length: u64,
 }
 
-impl SinglyLinkedList {
-    pub fn new_empty() -> SinglyLinkedList {
-        SinglyLinkedList { head: None, tail: None, length: 0 }
+impl TransactionLog {
+    pub fn new_empty() -> TransactionLog {
+        TransactionLog { head: None, tail: None, length: 0 }
     }
-}
-
-impl SinglyLinkedList {
 
     pub fn append(&mut self, value: String) {
         let new = Node::new(value);

@@ -1,1 +1,7 @@
-rustflags = ["-A dead_code", "-A unused_imports"]
+[build]
+rustflags = ["-Adead_code", "-Aunused_imports"]
+
+[alias]
+b = "build"
+t = "test"
+r = "run"
