@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct Node {
     value: String,
     next: Link,
@@ -18,7 +18,7 @@ impl Node {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct TransactionLog {
     head: Link,
     tail: Link,
@@ -40,7 +40,6 @@ impl TransactionLog {
         self.length += 1;
         self.tail = Some(new);
     }
-
 
     pub fn pop(&mut self) -> Option<String> {
         self.head.take().map(|head| {

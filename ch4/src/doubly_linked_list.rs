@@ -1,7 +1,7 @@
 use std::cell::{Ref, RefCell};
 use std::rc::Rc;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct Node {
     value: String,
     next: Link,
@@ -20,7 +20,7 @@ impl Node {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct BetterTransactionLog {
     head: Link,
     tail: Link,

@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 type Link = Option<Rc<RefCell<Node>>>;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 struct Node {
     next: Vec<Link>,
     pub offset: u64,
@@ -20,6 +20,7 @@ impl Node {
     }
 }
 
+#[derive(Clone)]
 pub struct BestTransactionLog {
     head: Link,
     tails: Vec<Link>,
@@ -32,7 +33,7 @@ impl BestTransactionLog {
         BestTransactionLog {
             max_level: max_level,
             head: None,
-            tails: vec![None; max_level],
+            tails: vec![None; max_level + 1],
             length: 0,
         }
     }
@@ -47,101 +48,123 @@ impl BestTransactionLog {
     }
 
     pub fn append(&mut self, offset: u64, value: String) {
-        let level = self.get_level() + 1;
+        let level = 1 + if self.head.is_none() {
+            self.max_level
+        }
+        else {
+            self.get_level()
+        };
+
         let new = Node::new(vec![None; level], offset, value);
         for i in 0..level {
             if let Some(old) = self.tails[i].take() {
-                let mut i = 0;
                 let next = &mut old.borrow_mut().next;
-                while i < level && i < next.len() {
-                    next[i] = Some(new.clone());
-                    i += 1
-                }
+                next[i] = Some(new.clone());
             }
             self.tails[i] = Some(new.clone());
         }
+        if self.head.is_none() {
+            self.head = Some(new.clone());
+        }
+
         self.length += 1;
     }
 
-    // pub fn find(&self, offset: u64) -> Option<String> {
-    //     if let Some(ref head) = self.head {
-    //         let mut i = self.max_level;
-    //         let node = head.borrow();
-    //         loop {
-    //             if node.next[i].is_some() {
-    //                 break;
-    //             }
-    //             i -= 1;
-    //         }
-    //         self.find_r(i, node, offset)
-    //     } else {
-    //         None
-    //     }
-    // }
+    pub fn find(&self, offset: u64) -> Option<String> {
+        match self.head {
+            Some(ref head) => {
+                let mut start_level = self.max_level;
+                let node = head.clone();
+                let mut result = None;
+                loop {
+                    if node.borrow().next[start_level].is_some() {
+                        break;
+                    }
+                    start_level -= 1;
+                }
+                let mut n = node;
+                for level in (0..=start_level).rev() {
+                    loop {
+                        let next = n.clone();
+                        match next.borrow().next[level] {
+                            Some(ref next) if next.borrow().offset <= offset => n = next.clone(),
+                            _ => break
+                        };
+                    }
+                    if n.borrow().offset == offset {
+                        let tmp = n.borrow();
+                        result = Some(tmp.command.clone());
+                        break;
+                    }
+                }
+                result
+            }
+            None => None,
+        }
+    }
 
-    // fn find_r(&self, level: usize, start_node: Ref<Node>, offset: u64) -> Option<String> {
-    //     let mut next = start_node;
-    //     loop {
-    //         let mut next = Some(next);
-    //         match next {
-    //             Some(ref _next) => {
-    //                 if _next.offset > offset {
-    //                     break;
-    //                 }
-    //                 next = _next.next[level];
-    //             }
-    //             None => break
-    //         }
-    //     }
-    //     if offset == next.offset {
-    //         Some(next.command.clone())
-    //     } else {
-    //         if level > 0 {
-    //             self.find_r(level - 1, next, offset)
-    //         } else {
-    //             None
-    //         }
-    //     }
-    // }
-
-    // pub fn pop(&mut self) -> Option<String> {
-    //     self.head.take().map(|head| {
-    //         if let Some(next) = head.borrow_mut().next.take() {
-    //             next.borrow_mut().prev = None;
-    //             self.head = Some(next);
-    //         } else {
-    //             self.tail.take();
-    //         }
-    //         self.length -= 1;
-    //         Rc::try_unwrap(head)
-    //             .ok()
-    //             .expect("Something is terribly wrong")
-    //             .into_inner()
-    //             .value
-    //     })
-    // }
-}
-
-impl std::fmt::Debug for SkipList {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        // write!(f, "BEHOLD THE SKIP LIST");
-
-        // if let Some(ref head) = self.head {
-        //     for lvl in 0..self.max_level {
-        //         let mut next = head.as_mut();
-        //         write!(f, "[{}]", lvl);
-        //         loop {
-        //             if let Some(ref _next) = next.next[lvl] {
-        //                 write!(f, "{} -> ", next.offset);
-        //                 next = _next.borrow();
-        //             } else {
-        //                 break;
-        //             }
-        //         }
-        //         write!(f, "{} -> ", next.offset);
-        //     }
-        // }
-        Ok(())
+    fn iter_level(&self, level: usize) -> ListIterator {
+        ListIterator::new(self.head.clone(), level)
     }
 }
 
+
+impl IntoIterator for BestTransactionLog {
+    type Item = (u64, String);
+    type IntoIter = ListIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ListIterator::new(self.head, 0)
+    }
+}
+
+pub struct ListIterator {
+    current: Option<Rc<RefCell<Node>>>,
+    level: usize,
+}
+
+impl ListIterator {
+    fn new(start_at: Option<Rc<RefCell<Node>>>, level: usize) -> ListIterator {
+        ListIterator {
+            current: start_at,
+            level: level,
+        }
+    }
+}
+
+impl Iterator for ListIterator {
+    type Item = (u64, String);
+
+    fn next(&mut self) -> Option<(u64, String)> {
+        let current = &self.current;
+        let mut result = None;
+        self.current = match current {
+            Some(ref current) => {
+                let current = current.borrow();
+                result = Some((current.offset, current.command.clone()));
+                current.next[self.level].clone()
+            },
+            _ => None
+        };
+        result
+    }
+}
+
+
+impl std::fmt::Debug for BestTransactionLog {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self.head {
+            Some(ref head) => {
+                for level in (0..=self.max_level).rev() {
+                    write!(f, "{}: ", level);
+                    for n in self.iter_level(level) {
+                        write!(f, "[{}] ", n.0);
+                    }
+                    writeln!(f, "");
+                }
+                Ok(())
+            }
+            None => write!(f, "The list is empty: []")
+        }
+    }
+}
