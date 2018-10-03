@@ -43,11 +43,10 @@ impl DeviceRegistry {
             Some(mut n) => {
                 if n.dev.numerical_id <= device.numerical_id {
                     n.left = self.add_r(n.left, device);
-                    Some(n)
                 } else {
                     n.right = self.add_r(n.right, device);
-                    Some(n)
                 }
+                Some(n)
             }
             _ => Node::new(device),
         }

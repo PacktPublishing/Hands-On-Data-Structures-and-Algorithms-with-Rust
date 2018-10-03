@@ -359,10 +359,7 @@ impl BetterDeviceRegistry {
     pub fn find(&self, numerical_id: u64) -> Option<IoTDevice> {
         self.find_r(
             &self.root,
-            &IoTDevice {
-                numerical_id: numerical_id,
-                address: "".to_owned(),
-            },
+            &IoTDevice::new(numerical_id, "".to_owned(), "".to_owned()),
         )
     }
 

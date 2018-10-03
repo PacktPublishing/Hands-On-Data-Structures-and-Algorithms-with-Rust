@@ -14,7 +14,7 @@ mod tests {
     use std::collections::LinkedList;
     use test::Bencher;
     const LIST_ITEMS: u64 = 10_000;
-/*
+
     #[bench]
     fn bench_skip_list_find(b: &mut Bencher) {
         let mut list = skip_list::BestTransactionLog::new_empty(20);
@@ -43,23 +43,7 @@ mod tests {
             list.iter().find(|&x| x.0 == r).expect("NOT FOUND")
         });
     }
-*/
-    #[test]
-    fn bench_singly_linked_list_append()/*(b: &mut Bencher)*/ {
-        let mut list = singly_linked_list::TransactionLog::new_empty();
-        let mut rng = thread_rng();
-        let s = "".to_owned();
-        let m = 100_000;
-        for i in 0..m {
-            list.append(s.clone());
-        }
-        assert_eq!(list.length, m)
-        // b.iter(|| {
-        //     list.append(s.clone())
-        // });
-    }
 
-/*
     #[bench]
     fn bench_linked_list_append(b: &mut Bencher) {
         let mut list = LinkedList::new();
@@ -69,11 +53,11 @@ mod tests {
             list.push_back(rng.gen::<u64>())
         });
     }
-    */
+    
 
     #[bench]
     fn bench_dynamic_array_append(b: &mut Bencher) {
-        let mut list = dynamic_array::LogSaver::new_empty();
+        let mut list = dynamic_array::TimestampSaver::new_empty();
         let mut rng = thread_rng();
 
         b.iter(|| {
@@ -263,7 +247,7 @@ mod tests {
 
     #[test]
     fn dynamic_array_append() {
-        let mut list = dynamic_array::LogSaver::new_empty();
+        let mut list = dynamic_array::TimestampSaver::new_empty();
         let max: usize = 1_000;
         for i in 0..max {
             list.append(i as u64);
@@ -273,7 +257,7 @@ mod tests {
 
     #[test]
     fn dynamic_array_at() {
-        let mut list = dynamic_array::LogSaver::new_empty();
+        let mut list = dynamic_array::TimestampSaver::new_empty();
         let max: usize = 1_000;
         for i in 0..max {
             list.append(i as u64);
@@ -283,5 +267,21 @@ mod tests {
             assert_eq!(list.at(i), Some(i as u64));
         }
         assert_eq!(list.at(max + 1), None);
+    }
+     #[test]
+    fn dynamic_array_iterate() {
+        let mut list = dynamic_array::TimestampSaver::new_empty();
+        list.append(1);
+        list.append(2);
+        list.append(3);
+        list.append(4);
+        assert_eq!(list.length, 4);
+        let mut iter = list.into_iter();
+        assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.next(), Some(2));
+        assert_eq!(iter.next(), Some(3));
+        assert_eq!(iter.next(), Some(4));
+        assert_eq!(iter.next(), None);
+
     }
 }
