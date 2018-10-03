@@ -8,85 +8,148 @@ type KeyType = u64;
 
 type Data = (Option<IoTDevice>, Option<Tree>);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, PartialEq, Debug)]
+enum NodeType {
+    Leaf,
+    Regular,
+}
+
+#[derive(Clone, PartialEq)]
+enum Direction {
+    Left,
+    Right(usize),
+}
+
+#[derive(Clone)]
 struct Node {
-    devices: HashMap<KeyType, Data>,
-    pub is_leaf: bool,
+    devices: Vec<Option<IoTDevice>>,
+    children: Vec<Option<Tree>>,
+    left_child: Option<Tree>,
+    pub node_type: NodeType,
 }
 
 impl Node {
     pub fn new_leaf() -> Tree {
-        Node::new(true)
+        Node::new(NodeType::Leaf)
     }
 
     pub fn new_regular() -> Tree {
-        Node::new(false)
+        Node::new(NodeType::Regular)
     }
 
-    fn new(is_leaf: bool) -> Tree {
-        let mut devices = HashMap::new();
-        devices.insert(KeyType::min_value(), (None, None));
+    fn new(node_type: NodeType) -> Tree {
         Box::new(Node {
-            devices: devices,
-            is_leaf: is_leaf,
+            left_child: None,
+            devices: vec![],
+            children: vec![],
+            node_type: node_type,
         })
     }
 
     pub fn len(&self) -> usize {
-        self.devices.len()
+        self.children.len() + 1
     }
 
     pub fn split(&mut self) -> (IoTDevice, Tree) {
-        let mut sibling = Node::new(self.is_leaf);
+        let mut sibling = Node::new(self.node_type.clone());
 
-        let no_of_devices = self.len();
+        let no_of_devices = self.devices.len();
         let split_at = no_of_devices / 2usize;
 
-        let mut ordered_keys: Vec<KeyType> = self.devices.keys().map(|k| *k).collect();
-        ordered_keys.sort();
+        let dev = self.devices.remove(split_at);
+        let node = self.children.remove(split_at);
 
-        let (dev, node) = self.devices.remove(&ordered_keys[split_at]).unwrap();
-        ordered_keys.remove(split_at);
-
-        for (key, value) in ordered_keys
-            .iter()
-            .enumerate()
-            .filter(|(i, _)| i >= &split_at)
-            .filter_map(|(_, k)| self.devices.remove_entry(k))
-        {
-            sibling.add_key(key, value);
+        for i in split_at..self.devices.len() {
+            let device = self.devices.pop().unwrap();
+            let child = self.children.pop().unwrap();
+            sibling.add_key(device.as_ref().unwrap().numerical_id, (device, child));
         }
 
-        sibling.add_key(KeyType::min_value(), (None, node));
+        sibling.add_left_child(node);
         (dev.unwrap(), sibling)
     }
 
+    fn print(&self, label: String) {
+        let ids: Vec<Option<u64>> = self
+            .devices
+            .iter()
+            .map(|d| d.as_ref().map(|i| i.numerical_id))
+            .collect();
+        let children: Vec<bool> = self.children.iter().map(|d| d.is_some()).collect();
+        println!("::::::::::::::::::");
+        println!("{}: {:?}", label, ids);
+        println!("{}: {} {:?}", label, self.left_child.is_some(), children);
+        println!("{:?}", self.node_type);
+        println!("::::::::::::::::::");
+    }
+
+    pub fn add_left_child(&mut self, tree: Option<Tree>) {
+        self.left_child = tree;
+    }
+
     pub fn add_key(&mut self, key: KeyType, value: Data) -> bool {
-        self.devices.insert(key, value).is_none()
+        let pos = match self.find_closest_index(key) {
+            Direction::Left => 0,
+            Direction::Right(p) => p + 1,
+        };
+        let (dev, tree) = value;
+
+        if pos >= self.devices.len() {
+            self.devices.push(dev);
+            self.children.push(tree);
+        } else {
+            self.devices.insert(pos, dev);
+            self.children.insert(pos, tree);
+        }
+        true
     }
 
     pub fn remove_key(&mut self, id: KeyType) -> Option<(KeyType, Data)> {
-        let key = self.find_closest_key(id);
-        self.devices.remove_entry(&key)
+        match self.find_closest_index(id) {
+            Direction::Left => {
+                let tree = mem::replace(&mut self.left_child, None);
+                Some((id, (None, tree)))
+            }
+            Direction::Right(index) => {
+                let dev = self.devices.remove(index);
+                let tree = self.children.remove(index);
+                Some((dev.as_ref().unwrap().numerical_id, (dev, tree)))
+            }
+        }
     }
 
-    pub fn find_closest_key(&self, id: KeyType) -> KeyType {
-        let mut ordered_keys: Vec<KeyType> = self.devices.keys().map(|k| *k).collect();
-        ordered_keys.sort();
-        ordered_keys
-            .iter()
-            .fold(KeyType::min_value(), |last, current| {
-                if current <= &id {
-                    *current
+    pub fn find_closest_index(&self, key: KeyType) -> Direction {
+        let mut index = Direction::Left;
+        for (i, pair) in self.devices.iter().enumerate() {
+            if let Some(dev) = pair {
+                if dev.numerical_id <= key {
+                    index = Direction::Right(i);
                 } else {
-                    last
+                    break;
                 }
-            })
+            }
+        }
+        index
     }
 
-    fn print(&self, label: &str) {
-        let devs: Vec<&u64> = self.devices.keys().collect();
-        println!("{}: {:?}", label, devs);
+    pub fn get_device(&self, key: KeyType) -> Option<&IoTDevice> {
+        let mut result = None;
+        for d in self.devices.iter() {
+            if let Some(device) = d {
+                if device.numerical_id == key {
+                    result = Some(device);
+                    break;
+                }
+            }
+        }
+        result
+    }
+
+    pub fn get_child(&self, key: KeyType) -> Option<&Tree> {
+        match self.find_closest_index(key) {
+            Direction::Left => self.left_child.as_ref(),
+            Direction::Right(i) => self.children[i].as_ref(),
+        }
     }
 }
 
@@ -103,11 +166,6 @@ impl DeviceDatabase {
             length: 0,
             order: order,
         }
-    }
-
-    fn print_node(&self, node: &Tree, label: &str) {
-        let devs: Vec<&u64> = node.devices.keys().collect();
-        println!("{}: {:?}", label, devs);
     }
 
     pub fn add(&mut self, device: IoTDevice) {
@@ -130,24 +188,24 @@ impl DeviceDatabase {
         let mut node = node;
         let id = device.numerical_id;
 
-        if node.is_leaf {
-            if node.add_key(id, (Some(device), None)) {
-                self.length += 1;
+        match node.node_type {
+            NodeType::Leaf => {
+                if node.add_key(id, (Some(device), None)) {
+                    self.length += 1;
+                }
             }
-        } else {
-            // Remove the entry from  the device map to pass ownership into the recursion
-            // always returns a result or the min_value of KeyType
-            let (key, (dev, tree)) = node.remove_key(id).unwrap();
-            let new = self.add_r(tree.unwrap(), device, false);
-
-            // Re-add the key, device, and subtree to the map
-            node.add_key(key, (dev, Some(new.0)));
-
-            // In case a split happened in the add_r() call, the new device
-            // "bubbles up" and needs to be added
-            if let Some(split_result) = new.1 {
-                let new_id = &split_result.0.clone().unwrap();
-                node.add_key(new_id.numerical_id, split_result);
+            NodeType::Regular => {
+                let (key, (dev, tree)) = node.remove_key(id).unwrap();
+                let new = self.add_r(tree.unwrap(), device, false);
+                if dev.is_none() {
+                    node.add_left_child(Some(new.0));
+                } else {
+                    node.add_key(key, (dev, Some(new.0)));
+                }
+                if let Some(split_result) = new.1 {
+                    let new_id = &split_result.0.clone().unwrap();
+                    node.add_key(new_id.numerical_id, split_result);
+                }
             }
         }
 
@@ -158,7 +216,7 @@ impl DeviceDatabase {
             if is_root {
                 let mut parent = Node::new_regular();
                 // Add the former root to the left
-                parent.add_key(KeyType::min_value(), (None, Some(node)));
+                parent.add_left_child(Some(node));
                 // Add the new right part as well
                 parent.add_key(new_parent.numerical_id, (Some(new_parent), Some(sibling)));
                 (parent, None)
@@ -180,44 +238,44 @@ impl DeviceDatabase {
     }
 
     fn validate(&self, node: &Tree, level: usize) -> (bool, usize, usize) {
-        if node.is_leaf {
-            (node.len() <= self.order, level, level)
-        } else {
-            // Root node only requires two children, every other node at least half the
-            // order
-            let min_children = if level > 0 { self.order / 2usize } else { 2 };
-            let key_rules = node.len() <= self.order && node.len() >= min_children;
+        //node.print(format!("Level: {}", level));
+        match node.node_type {
+            NodeType::Leaf => (node.len() <= self.order, level, level),
+            NodeType::Regular => {
+                // Root node only requires two children, every other node at least half the
+                // order
+                let min_children = if level > 0 { self.order / 2usize } else { 2 };
+                let key_rules = node.len() <= self.order && node.len() >= min_children;
 
-            let mut total = (key_rules, usize::max_value(), level);
-            for n in node.devices.values() {
-                if let Some(tree) = n.1.as_ref() {
-                    let stats = self.validate(tree, level + 1);
-                    total = (
-                        total.0 && stats.0,
-                        cmp::min(stats.1, total.1),
-                        cmp::max(stats.2, total.2),
-                    );
+                let mut total = (key_rules, usize::max_value(), level);
+                for n in node.children.iter().chain(vec![&node.left_child]) {
+                    if let Some(ref tree) = n {
+                        let stats = self.validate(tree, level + 1);
+                        total = (
+                            total.0 && stats.0,
+                            cmp::min(stats.1, total.1),
+                            cmp::max(stats.2, total.2),
+                        );
+                    }
                 }
+                total
             }
-            total
         }
     }
 
     pub fn find(&self, id: KeyType) -> Option<IoTDevice> {
         match self.root.as_ref() {
-            Some(tree) if id != KeyType::min_value() => self.find_r(tree, id),
+            Some(tree) => self.find_r(tree, id),
             _ => None,
         }
     }
 
     fn find_r(&self, node: &Tree, id: KeyType) -> Option<IoTDevice> {
-        match node.devices.get(&id) {
-            Some(device) => device.0.clone(),
-            None if !node.is_leaf => {
-                let key = node.find_closest_key(id);
-                if let Some(ref tree) = node.devices.get(&key) {
-                    let tree = tree.1.as_ref().unwrap();
-                    self.find_r(&tree, id)
+        match node.get_device(id) {
+            Some(device) => Some(device.clone()),
+            None if node.node_type != NodeType::Leaf => {
+                if let Some(tree) = node.get_child(id) {
+                    self.find_r(tree, id)
                 } else {
                     None
                 }
@@ -226,34 +284,25 @@ impl DeviceDatabase {
         }
     }
 
-    /*   
-    pub fn find(&self, numerical_id: KeyType) -> Option<IoTDevice> {
-        self.find_r(&self.root, numerical_id)
-    }
-    
-    fn find_r(&self, node: &Tree, numerical_id: u64) -> Option<IoTDevice> {
-        match node {
-            Some(n) => {
-                if n.dev.numerical_id == numerical_id {
-                    Some(n.dev.clone())
-                } else if n.dev.numerical_id < numerical_id {
-                    self.find_r(&n.left, numerical_id)
-                } else {
-                    self.find_r(&n.right, numerical_id)
-                }
-            }
-            _ => None,
+    pub fn walk(&self, callback: impl Fn(&IoTDevice) -> ()) {
+        if let Some(ref root) = self.root {
+            self.walk_in_order(root, &callback);
         }
     }
-    
-    pub fn walk(&self, callback: impl Fn(&IoTDevice) -> ()) {
-        self.walk_in_order(&self.root, &callback);
-    }
-    
+
     fn walk_in_order(&self, node: &Tree, callback: &impl Fn(&IoTDevice) -> ()) {
-    
-            self.walk_in_order(&n.left, callback);
-            callback(&n.dev);
-            self.walk_in_order(&n.right, callback);
-    }*/
+        if let Some(ref left) = node.left_child {
+            self.walk_in_order(left, callback);
+        }
+
+        for i in 0..node.devices.len() {
+            if let Some(ref k) = node.devices[i] {
+                callback(k);
+            }
+
+            if let Some(ref c) = node.children[i] {
+                self.walk_in_order(&c, callback);
+            }
+        }
+    }
 }
