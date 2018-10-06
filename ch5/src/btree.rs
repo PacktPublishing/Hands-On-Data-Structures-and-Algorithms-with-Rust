@@ -59,7 +59,7 @@ impl Node {
         let dev = self.devices.remove(split_at);
         let node = self.children.remove(split_at);
 
-        for i in split_at..self.devices.len() {
+        for _ in split_at..self.devices.len() {
             let device = self.devices.pop().unwrap();
             let child = self.children.pop().unwrap();
             sibling.add_key(device.as_ref().unwrap().numerical_id, (device, child));
@@ -169,7 +169,7 @@ impl DeviceDatabase {
     }
 
     pub fn add(&mut self, device: IoTDevice) {
-        let mut node = if self.root.is_some() {
+        let node = if self.root.is_some() {
             mem::replace(&mut self.root, None).unwrap()
         } else {
             Node::new_leaf()

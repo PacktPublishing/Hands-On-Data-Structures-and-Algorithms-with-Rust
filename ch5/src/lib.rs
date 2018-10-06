@@ -1,10 +1,11 @@
 #![feature(uniform_paths, test, bind_by_move_pattern_guards)]
 
 mod binary_search_tree;
+mod btree;
+mod graph;
 mod heap;
 mod red_black_tree;
 mod trie;
-mod btree;
 
 #[derive(Clone, Debug)]
 pub struct IoTDevice {
@@ -58,6 +59,8 @@ mod tests {
     use rand::Rng;
     use std::cell::RefCell;
     use test::Bencher;
+    use std::collections::HashSet;
+    use std::iter::FromIterator;
 
     const LIST_ITEMS: u64 = 10_000;
 
@@ -72,6 +75,76 @@ mod tests {
     fn new_notification_with_id(id: u64, no_messages: u64) -> MessageNotification {
         let dev = new_device_with_id(id);
         MessageNotification::new(dev, no_messages)
+    }
+
+    fn build_graph(g: graph::InternetOfThings, items: &Vec<IoTDevice>) -> graph::InternetOfThings {
+        let mut g = g;
+
+        g.set_nodes(items.iter().map(|n| n.numerical_id.clone()).collect());
+        g.set_edges(
+            items[0].numerical_id.clone(),
+            vec![
+                (1, items[1].numerical_id.clone()),
+                (1, items[2].numerical_id.clone()),
+                (1, items[3].numerical_id.clone()),
+                (10, items[9].numerical_id.clone()),
+            ],
+        );
+
+        g.set_edges(
+            items[1].numerical_id.clone(),
+            vec![(1, items[0].numerical_id.clone())],
+        );
+        g.set_edges(
+            items[2].numerical_id.clone(),
+            vec![(1, items[0].numerical_id.clone())],
+        );
+        g.set_edges(
+            items[3].numerical_id.clone(),
+            vec![
+                (1, items[0].numerical_id.clone()),
+                (1, items[4].numerical_id.clone()),
+            ],
+        );
+        g.set_edges(
+            items[4].numerical_id.clone(),
+            vec![
+                (1, items[3].numerical_id.clone()),
+                (1, items[5].numerical_id.clone()),
+            ],
+        );
+        g.set_edges(
+            items[5].numerical_id.clone(),
+            vec![
+                (1, items[4].numerical_id.clone()),
+                (1, items[6].numerical_id.clone()),
+            ],
+        );
+        g.set_edges(
+            items[6].numerical_id.clone(),
+            vec![
+                (1, items[9].numerical_id.clone()),
+                (1, items[5].numerical_id.clone()),
+            ],
+        );
+        g.set_edges(
+            items[7].numerical_id.clone(),
+            vec![(1, items[9].numerical_id.clone())],
+        );
+        g.set_edges(
+            items[8].numerical_id.clone(),
+            vec![(1, items[9].numerical_id.clone())],
+        );
+        g.set_edges(
+            items[9].numerical_id.clone(),
+            vec![
+                (1, items[8].numerical_id.clone()),
+                (1, items[7].numerical_id.clone()),
+                (1, items[6].numerical_id.clone()),
+                (10, items[0].numerical_id.clone()),
+            ],
+        );
+        g
     }
 
     #[bench]
@@ -229,13 +302,14 @@ mod tests {
         let len = 10;
 
         let mut rng = thread_rng();
-        let mut items: Vec<IoTDevice> = (0..len)
+        let items: Vec<IoTDevice> = (0..len)
             .map(|i| {
                 new_device_with_id_path(
                     i,
                     format!("factory{}/machineA/{}", rng.gen_range(0, len), i),
                 )
-            }).collect();
+            })
+            .collect();
 
         for item in items.iter() {
             trie.add(item.clone());
@@ -260,17 +334,12 @@ mod tests {
         let mut paths = vec![];
         for i in 0..len {
             let s = format!("factory{}/machineA/{}", rng.gen_range(0, len), i);
-            trie.add(new_device_with_id_path(
-                i,
-                s.clone(),
-            ));
+            trie.add(new_device_with_id_path(i, s.clone()));
             paths.push(s);
         }
 
         assert_eq!(trie.length, len);
-
         assert_eq!(trie.find("100"), None);
-    
     }
 
     #[test]
@@ -368,7 +437,6 @@ mod tests {
         assert_eq!(heap.pop(), Some(a));
     }
 
-
     #[bench]
     fn bench_unsorted_insert_btree_find_4(b: &mut Bencher) {
         let mut tree = btree::DeviceDatabase::new_empty(4);
@@ -409,10 +477,8 @@ mod tests {
         });
     }
 
-
     #[test]
     fn btree_add() {
-
         let mut tree = btree::DeviceDatabase::new_empty(3);
         tree.add(new_device_with_id(0));
         tree.add(new_device_with_id(2));
@@ -472,5 +538,61 @@ mod tests {
         assert_eq!(tree.find(5), Some(new_device_with_id(5)));
         assert_eq!(tree.find(6), Some(new_device_with_id(6)));
         assert_eq!(tree.find(7), Some(new_device_with_id(7)));
+    }
+
+    #[test]
+    fn graph_insert_edges() {
+               let len = 10;
+        let items: Vec<IoTDevice> = (0..len).map(new_device_with_id).collect();
+
+        let g = build_graph(graph::InternetOfThings::new(), &items);
+
+        assert_eq!(g.edges(), 20);
+        assert_eq!(g.nodes(), len as usize);
+    }
+
+    #[test]
+    fn graph_find_shortest_path() {
+        let len = 10;
+        let items: Vec<IoTDevice> = (0..len).map(new_device_with_id).collect();
+
+        let g = build_graph(graph::InternetOfThings::new(), &items);
+
+        assert_eq!(g.edges(), 20);
+        assert_eq!(g.nodes(), len as usize);
+
+        assert_eq!(
+            g.shortest_path(items[0].numerical_id, items[9].numerical_id),
+            Some((5, vec![
+                items[0].numerical_id,
+                items[3].numerical_id,
+                items[4].numerical_id,
+                items[5].numerical_id,
+                items[6].numerical_id,
+                items[9].numerical_id
+            ]))
+        )
+    }
+
+
+    #[test]
+    fn graph_neighbors() {
+        let len = 10;
+        let items: Vec<IoTDevice> = (0..len).map(new_device_with_id).collect();
+
+        let g = build_graph(graph::InternetOfThings::new(), &items);
+
+        assert_eq!(g.edges(), 20);
+        assert_eq!(g.nodes(), len as usize);
+
+        assert_eq!(
+            g.connected(items[0].numerical_id, 1),
+            Some(HashSet::from_iter(vec![
+                items[1].numerical_id,
+                items[2].numerical_id,
+                items[3].numerical_id,
+                items[9].numerical_id,
+            ].into_iter()))
+        )
     }
 }
