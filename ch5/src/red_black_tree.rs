@@ -119,7 +119,7 @@ impl BetterDeviceRegistry {
         red_red == 0 && black_height_min == black_height_max
     }
 
-    // red-red violations, min black-height, max-black-height, leaves-are-black
+    // red-red violations, min black-height, max-black-height
     fn validate(
         &self,
         node: &Tree,

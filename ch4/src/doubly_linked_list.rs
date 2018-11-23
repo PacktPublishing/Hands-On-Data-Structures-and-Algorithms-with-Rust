@@ -68,6 +68,10 @@ impl BetterTransactionLog {
     pub fn back_iter(self) -> ListIterator {
         ListIterator::new(self.tail)
     }
+
+    pub fn iter(&self) -> ListIterator {
+        ListIterator::new(self.head.clone())
+    }
 }
 
 impl IntoIterator for BetterTransactionLog {

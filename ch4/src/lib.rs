@@ -13,7 +13,7 @@ mod tests {
     use rand::Rng;
     use std::collections::LinkedList;
     use test::Bencher;
-    const LIST_ITEMS: u64 = 10_000;
+    const LIST_ITEMS: u64 = 15_000;
 
     #[bench]
     fn bench_skip_list_find(b: &mut Bencher) {
@@ -31,10 +31,41 @@ mod tests {
 
     #[bench]
     fn bench_linked_list_find(b: &mut Bencher) {
-        let mut list = LinkedList::new();
+        let mut list = doubly_linked_list::BetterTransactionLog::new_empty();
+        let items: Vec<String> = (0..LIST_ITEMS).map(|i| format!("INSERT INTO mytable VALUES ({})", i).to_owned()).collect();
+        for item in items.iter() {
+            list.append(item.clone());
+        }
+        let mut rng = thread_rng();
+
+        b.iter(|| {
+            let r = rng.gen_range::<usize>(0, LIST_ITEMS as usize);
+            list.iter().find(|x| x == &items[r]).expect("NOT FOUND")
+        });
+    }
+
+    #[bench]
+    fn bench_std_linked_list_find(b: &mut Bencher) {
+        let mut list = std::collections::LinkedList::new();
+        let items: Vec<String> = (0..LIST_ITEMS).map(|i| format!("INSERT INTO mytable VALUES ({})", i).to_owned()).collect();
+        for item in items.iter() {
+            list.push_back(item.clone());
+        }
+        let mut rng = thread_rng();
+
+        b.iter(|| {
+            let r = rng.gen_range::<usize>(0, LIST_ITEMS as usize);
+            list.iter().find(|&x| x == &items[r]).expect("NOT FOUND")
+        });
+    }
+
+
+    #[bench]
+    fn bench_vec_find(b: &mut Bencher) {
+        let mut list = vec![];
 
         for i in 0..LIST_ITEMS {
-            list.push_back((i, format!("INSERT INTO mytable VALUES ({})", i).to_owned()));
+            list.push((i, format!("INSERT INTO mytable VALUES ({})", i).to_owned()));
         }
         let mut rng = thread_rng();
 
@@ -54,7 +85,6 @@ mod tests {
         });
     }
     
-
     #[bench]
     fn bench_dynamic_array_append(b: &mut Bencher) {
         let mut list = dynamic_array::TimestampSaver::new_empty();
@@ -64,6 +94,17 @@ mod tests {
             list.append(rng.gen::<u64>())
         });
     }
+
+      #[bench]
+    fn bench_vec_append(b: &mut Bencher) {
+        let mut list = vec![];
+        let mut rng = thread_rng();
+
+        b.iter(|| {
+            list.push(rng.gen::<u64>())
+        });
+    }
+
 
     #[test]
     fn transaction_log_append() {

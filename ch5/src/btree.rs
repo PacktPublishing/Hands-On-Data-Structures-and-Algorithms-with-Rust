@@ -69,20 +69,6 @@ impl Node {
         (dev.unwrap(), sibling)
     }
 
-    fn print(&self, label: String) {
-        let ids: Vec<Option<u64>> = self
-            .devices
-            .iter()
-            .map(|d| d.as_ref().map(|i| i.numerical_id))
-            .collect();
-        let children: Vec<bool> = self.children.iter().map(|d| d.is_some()).collect();
-        println!("::::::::::::::::::");
-        println!("{}: {:?}", label, ids);
-        println!("{}: {} {:?}", label, self.left_child.is_some(), children);
-        println!("{:?}", self.node_type);
-        println!("::::::::::::::::::");
-    }
-
     pub fn add_left_child(&mut self, tree: Option<Tree>) {
         self.left_child = tree;
     }
@@ -175,12 +161,8 @@ impl DeviceDatabase {
             Node::new_leaf()
         };
 
-        let (mut root, promoted) = self.add_r(node, device, true);
+        let (root, _) = self.add_r(node, device, true);
 
-        if let Some(split_result) = promoted {
-            let new_id = &split_result.0.clone().unwrap();
-            root.add_key(new_id.numerical_id, split_result);
-        }
         self.root = Some(root);
     }
 

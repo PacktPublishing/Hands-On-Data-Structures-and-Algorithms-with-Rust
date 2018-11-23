@@ -58,11 +58,11 @@ mod tests {
     use rand::thread_rng;
     use rand::Rng;
     use std::cell::RefCell;
-    use test::Bencher;
     use std::collections::HashSet;
     use std::iter::FromIterator;
+    use test::Bencher;
 
-    const LIST_ITEMS: u64 = 10_000;
+    const LIST_ITEMS: u64 = 15_000;
 
     fn new_device_with_id(id: u64) -> IoTDevice {
         new_device_with_id_path(id, "")
@@ -438,8 +438,104 @@ mod tests {
     }
 
     #[bench]
+    fn bench_unsorted_insert_btree_find_7(b: &mut Bencher) {
+        let mut tree = btree::DeviceDatabase::new_empty(7);
+        let mut items: Vec<IoTDevice> = (1..=LIST_ITEMS).map(new_device_with_id).collect();
+
+        let mut rng = thread_rng();
+        rng.shuffle(&mut items);
+
+        for item in items {
+            tree.add(item);
+        }
+        assert_eq!(tree.length, LIST_ITEMS);
+        assert!(tree.is_a_valid_btree());
+        b.iter(|| {
+            let r = rng.gen_range::<u64>(1, LIST_ITEMS + 1);
+            tree.find(r).expect("NOT FOUND")
+        });
+    }
+
+  #[bench]
+    fn bench_unsorted_insert_btree_find_14(b: &mut Bencher) {
+        let mut tree = btree::DeviceDatabase::new_empty(14);
+        let mut items: Vec<IoTDevice> = (1..=LIST_ITEMS).map(new_device_with_id).collect();
+
+        let mut rng = thread_rng();
+        rng.shuffle(&mut items);
+
+        for item in items {
+            tree.add(item);
+        }
+        assert_eq!(tree.length, LIST_ITEMS);
+        assert!(tree.is_a_valid_btree());
+        b.iter(|| {
+            let r = rng.gen_range::<u64>(1, LIST_ITEMS + 1);
+            tree.find(r).expect("NOT FOUND")
+        });
+    }
+
+
+    #[bench]
+    fn bench_unsorted_insert_btree_find_6(b: &mut Bencher) {
+        let mut tree = btree::DeviceDatabase::new_empty(6);
+        let mut items: Vec<IoTDevice> = (1..=LIST_ITEMS).map(new_device_with_id).collect();
+
+        let mut rng = thread_rng();
+        rng.shuffle(&mut items);
+
+        for item in items {
+            tree.add(item);
+        }
+        assert_eq!(tree.length, LIST_ITEMS);
+        assert!(tree.is_a_valid_btree());
+        b.iter(|| {
+            let r = rng.gen_range::<u64>(1, LIST_ITEMS + 1);
+            tree.find(r).expect("NOT FOUND")
+        });
+    }
+
+    #[bench]
+    fn bench_unsorted_insert_btree_find_5(b: &mut Bencher) {
+        let mut tree = btree::DeviceDatabase::new_empty(5);
+        let mut items: Vec<IoTDevice> = (1..=LIST_ITEMS).map(new_device_with_id).collect();
+
+        let mut rng = thread_rng();
+        rng.shuffle(&mut items);
+
+        for item in items {
+            tree.add(item);
+        }
+        assert_eq!(tree.length, LIST_ITEMS);
+        assert!(tree.is_a_valid_btree());
+        b.iter(|| {
+            let r = rng.gen_range::<u64>(1, LIST_ITEMS + 1);
+            tree.find(r).expect("NOT FOUND")
+        });
+    }
+
+    #[bench]
     fn bench_unsorted_insert_btree_find_4(b: &mut Bencher) {
         let mut tree = btree::DeviceDatabase::new_empty(4);
+        let mut items: Vec<IoTDevice> = (1..=LIST_ITEMS).map(new_device_with_id).collect();
+
+        let mut rng = thread_rng();
+        rng.shuffle(&mut items);
+
+        for item in items {
+            tree.add(item);
+        }
+        assert_eq!(tree.length, LIST_ITEMS);
+        assert!(tree.is_a_valid_btree());
+        b.iter(|| {
+            let r = rng.gen_range::<u64>(1, LIST_ITEMS + 1);
+            tree.find(r).expect("NOT FOUND")
+        });
+    }
+
+    #[bench]
+    fn bench_unsorted_insert_btree_find_3(b: &mut Bencher) {
+        let mut tree = btree::DeviceDatabase::new_empty(3);
         let mut items: Vec<IoTDevice> = (1..=LIST_ITEMS).map(new_device_with_id).collect();
 
         let mut rng = thread_rng();
@@ -474,6 +570,27 @@ mod tests {
         b.iter(|| {
             let r = rng.gen_range::<u64>(1, LIST_ITEMS + 1);
             tree.find(r).expect("NOT FOUND")
+        });
+    }
+
+
+    #[bench]
+    fn bench_sorted_insert_btreemap_find(b: &mut Bencher) {
+        let mut tree = std::collections::BTreeMap::new();
+
+        let items: Vec<IoTDevice> = (1..=LIST_ITEMS).map(new_device_with_id).collect();
+
+        for item in items {
+            tree.insert(item.numerical_id, item);
+        }
+
+        assert_eq!(tree.len(), LIST_ITEMS as usize);
+
+        let mut rng = thread_rng();
+
+        b.iter(|| {
+            let r = rng.gen_range::<u64>(1, LIST_ITEMS + 1);
+            tree.get(&r).expect("NOT FOUND")
         });
     }
 
@@ -542,7 +659,7 @@ mod tests {
 
     #[test]
     fn graph_insert_edges() {
-               let len = 10;
+        let len = 10;
         let items: Vec<IoTDevice> = (0..len).map(new_device_with_id).collect();
 
         let g = build_graph(graph::InternetOfThings::new(), &items);
@@ -563,17 +680,19 @@ mod tests {
 
         assert_eq!(
             g.shortest_path(items[0].numerical_id, items[9].numerical_id),
-            Some((5, vec![
-                items[0].numerical_id,
-                items[3].numerical_id,
-                items[4].numerical_id,
-                items[5].numerical_id,
-                items[6].numerical_id,
-                items[9].numerical_id
-            ]))
+            Some((
+                5,
+                vec![
+                    items[0].numerical_id,
+                    items[3].numerical_id,
+                    items[4].numerical_id,
+                    items[5].numerical_id,
+                    items[6].numerical_id,
+                    items[9].numerical_id
+                ]
+            ))
         )
     }
-
 
     #[test]
     fn graph_neighbors() {
@@ -587,12 +706,15 @@ mod tests {
 
         assert_eq!(
             g.connected(items[0].numerical_id, 1),
-            Some(HashSet::from_iter(vec![
-                items[1].numerical_id,
-                items[2].numerical_id,
-                items[3].numerical_id,
-                items[9].numerical_id,
-            ].into_iter()))
+            Some(HashSet::from_iter(
+                vec![
+                    items[1].numerical_id,
+                    items[2].numerical_id,
+                    items[3].numerical_id,
+                    items[9].numerical_id,
+                ]
+                .into_iter()
+            ))
         )
     }
 }

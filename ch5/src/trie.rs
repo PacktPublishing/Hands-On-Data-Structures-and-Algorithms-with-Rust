@@ -56,7 +56,7 @@ impl BestDeviceRegistry {
         }
     }
 
-    pub fn find(&mut self, path: &str) -> Option<IoTDevice> {
+    pub fn find(&self, path: &str) -> Option<IoTDevice> {
         let mut path = path.chars();
 
         if let Some(start) = path.next() {
