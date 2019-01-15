@@ -163,7 +163,7 @@ impl BetterDeviceRegistry {
                     match which {
                         RBOperation::LeftNode => {
                             // uncle is on the left
-                            let mut parent = n.borrow().parent.as_ref().expect("WTF").clone();
+                            let mut parent = n.borrow().parent.as_ref().unwrap().clone();
                             if uncle.is_some()
                                 && uncle.as_ref().unwrap().borrow().color == Color::Red
                             {
@@ -182,7 +182,7 @@ impl BetterDeviceRegistry {
                                     let tmp = n.borrow().parent.as_ref().unwrap().clone();
                                     n = tmp;
                                     self.rotate(n.clone(), Rotation::Right);
-                                    parent = n.borrow().parent.as_ref().expect("WTF").clone();
+                                    parent = n.borrow().parent.as_ref().unwrap().clone();
                                 }
                                 // until here. then for all black uncles
                                 parent.borrow_mut().color = Color::Black;
@@ -204,7 +204,7 @@ impl BetterDeviceRegistry {
 
                         RBOperation::RightNode => {
                             // uncle is on the right
-                            let mut parent = n.borrow().parent.as_ref().expect("WTF").clone();
+                            let mut parent = n.borrow().parent.as_ref().unwrap().clone();
 
                             if uncle.is_some()
                                 && uncle.as_ref().unwrap().borrow().color == Color::Red
@@ -225,7 +225,7 @@ impl BetterDeviceRegistry {
                                     let tmp = n.borrow().parent.as_ref().unwrap().clone();
                                     n = tmp;
                                     self.rotate(n.clone(), Rotation::Left);
-                                    parent = n.borrow().parent.as_ref().expect("WTF").clone();
+                                    parent = n.borrow().parent.as_ref().unwrap().clone();
                                 }
                                 // until here. then for all black uncles
                                 parent.borrow_mut().color = Color::Black;

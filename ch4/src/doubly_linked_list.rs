@@ -35,6 +35,7 @@ impl BetterTransactionLog {
             length: 0,
         }
     }
+
     pub fn append(&mut self, value: String) {
         let new = Node::new(value);
         match self.tail.take() {
@@ -84,11 +85,11 @@ impl IntoIterator for BetterTransactionLog {
 }
 
 pub struct ListIterator {
-    current: Option<Rc<RefCell<Node>>>,
+    current: Link,
 }
 
 impl ListIterator {
-    fn new(start_at: Option<Rc<RefCell<Node>>>) -> ListIterator {
+    fn new(start_at: Link) -> ListIterator {
         ListIterator {
             current: start_at,
         }

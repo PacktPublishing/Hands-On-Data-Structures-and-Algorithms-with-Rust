@@ -12,6 +12,8 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
+mod door;
+
 fn shared_state() {
     let v = Arc::new(Mutex::new(vec![]));
     let  handles = (0..10).map(|i| {

@@ -49,13 +49,14 @@ impl BestTransactionLog {
 
     pub fn append(&mut self, offset: u64, value: String) {
         let level = 1 + if self.head.is_none() {
-            self.max_level
-        }
-        else {
-            self.get_level()
+            self.max_level   // use the maximum level for the first node
+        } else { 
+            self.get_level() // determine the level by coin flips
         };
 
         let new = Node::new(vec![None; level], offset, value);
+
+        // update the tails for each level
         for i in 0..level {
             if let Some(old) = self.tails[i].take() {
                 let next = &mut old.borrow_mut().next;
@@ -63,10 +64,11 @@ impl BestTransactionLog {
             }
             self.tails[i] = Some(new.clone());
         }
+
+        // this is the first node in the list
         if self.head.is_none() {
             self.head = Some(new.clone());
         }
-
         self.length += 1;
     }
 

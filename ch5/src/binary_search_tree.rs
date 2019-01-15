@@ -35,16 +35,16 @@ impl DeviceRegistry {
     pub fn add(&mut self, device: IoTDevice) {
         self.length += 1;
         let root = mem::replace(&mut self.root, None);
-        self.root = self.add_r(root, device);
+        self.root = self.add_rec(root, device);
     }
 
-    fn add_r(&mut self, node: Tree, device: IoTDevice) -> Tree {
+    fn add_rec(&mut self, node: Tree, device: IoTDevice) -> Tree {
         match node {
             Some(mut n) => {
                 if n.dev.numerical_id <= device.numerical_id {
-                    n.left = self.add_r(n.left, device);
+                    n.left = self.add_rec(n.left, device);
                 } else {
-                    n.right = self.add_r(n.right, device);
+                    n.right = self.add_rec(n.right, device);
                 }
                 Some(n)
             }
