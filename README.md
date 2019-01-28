@@ -27,12 +27,13 @@ All of the code is organized into folders. For example, Chapter02.
 
 The code will look like the following:
 
+```
 fn my_function() {
     let x = 10;
     do_something(x); // ownership is moved here
     let y = x; // x is now invalid!
 }
-
+```
 
 *Following is what you need for this book:*
 This book is for developers seeking to use Rust solutions in a practical/professional setting; who wants to learn essential Data Structures and Algorithms in Rust. It is for developers with basic Rust language knowledge, some experience in other programming languages is required.	
