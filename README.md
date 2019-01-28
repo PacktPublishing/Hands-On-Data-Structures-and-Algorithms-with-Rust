@@ -53,7 +53,7 @@ We also provide a PDF file that has color images of the screenshots/diagrams use
 * Rust Quick Start Guide [[Packt]](https://www.packtpub.com/application-development/rust-quick-start-guide?utm_source=github&utm_medium=repository&utm_campaign=9781789616705 ) [[Amazon]](https://www.amazon.com/dp/1789616700)
 
 ## Get to Know the Author
-*Claus Matzinger*
+**Claus Matzinger**
 is a software engineer with a very diverse background. After working in a small company maintaining code for embedded devices, he joined a large corporation to work on legacy Smalltalk applications. This led to a great interest in programming languages early on, and Claus became the CTO for a health games start-up based on Scala technology.
 
 Since then, Claus' roles have shifted toward customer-facing roles in the IoT database-technology start-up crate.io and, most recently, Microsoft. There, he hosts a podcast, writes code together with customers, and blogs about the solutions arising from these engagements. For more than 5 years, Claus has implemented software to help customers innovate, achieve, and maintain success.
