@@ -4,7 +4,7 @@
 
 This is the code repository for [Hands-On Data Structures and Algorithms with Rust](https://www.packtpub.com/application-development/hands-data-structures-and-algorithms-rust?utm_source=github&utm_medium=repository&utm_campaign=9781788995528 ), published by Packt.
 
-*Learn programming techniques to build effective, maintainable, and readable code in Rust 2018*
+**Learn programming techniques to build effective, maintainable, and readable code in Rust 2018**
 
 ## What is this book about?
 Rust has come a long way and is now utilized in several contexts. Its key strengths are its software infrastructure and resource-constrained applications, including desktop applications, servers, and performance-critical applications, not forgetting its importance in systems' programming. This book will be your guide as it takes you through implementing classic data structures and algorithms in Rust, helping you to get up and running as a confident Rust programmer.
