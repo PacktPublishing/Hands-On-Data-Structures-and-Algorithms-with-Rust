@@ -35,7 +35,7 @@ fn my_function() {
 }
 ```
 
-*Following is what you need for this book:*
+**Following is what you need for this book:**
 This book is for developers seeking to use Rust solutions in a practical/professional setting; who wants to learn essential Data Structures and Algorithms in Rust. It is for developers with basic Rust language knowledge, some experience in other programming languages is required.	
 
 With the following software and hardware list you can run all code files present in the book (Chapter 1-12).
