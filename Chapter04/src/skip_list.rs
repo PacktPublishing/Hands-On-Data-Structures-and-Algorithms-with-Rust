@@ -156,13 +156,13 @@ impl Iterator for ListIterator {
 impl std::fmt::Debug for BestTransactionLog {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self.head {
-            Some(ref head) => {
+            Some(ref _head) => {
                 for level in (0..=self.max_level).rev() {
-                    write!(f, "{}: ", level);
+                    let _ = write!(f, "{}: ", level);
                     for n in self.iter_level(level) {
-                        write!(f, "[{}] ", n.0);
+                        let _ = write!(f, "[{}] ", n.0);
                     }
-                    writeln!(f, "");
+                    let _ = writeln!(f, "");
                 }
                 Ok(())
             }

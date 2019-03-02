@@ -1,4 +1,4 @@
-#![feature(uniform_paths, test)]
+#![feature(test)]
 
 mod doubly_linked_list;
 mod dynamic_array;

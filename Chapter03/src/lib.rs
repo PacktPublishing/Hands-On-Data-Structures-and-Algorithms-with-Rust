@@ -4,8 +4,6 @@
 //! Chapter 1  
 //!
 
-#![feature(uniform_paths)]
-
 struct MyStruct {
     a: u8,
     b: u8,

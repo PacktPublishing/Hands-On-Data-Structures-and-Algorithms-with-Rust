@@ -5,7 +5,7 @@
 //!
 
 
-#![feature(uniform_paths, test)]
+#![feature(test)]
 
 extern crate test;
 

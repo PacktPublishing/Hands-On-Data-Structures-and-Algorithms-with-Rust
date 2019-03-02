@@ -4,7 +4,6 @@
 //! Chapter 1  
 //!
 
-#![feature(uniform_paths)]
 use std::thread; 
 use std::sync::{Mutex, Arc};
 use std::sync::mpsc::{channel, Sender, Receiver};

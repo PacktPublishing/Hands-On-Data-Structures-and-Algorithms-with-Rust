@@ -1,4 +1,4 @@
-#![feature(uniform_paths, test, bind_by_move_pattern_guards)]
+#![feature(test, bind_by_move_pattern_guards)]
 use std::collections::BinaryHeap;
 use std::fmt::Debug;
 use std::mem;

@@ -1,4 +1,4 @@
-#![feature(uniform_paths, test, bind_by_move_pattern_guards)]
+#![feature(test, bind_by_move_pattern_guards)]
 
 mod binary_search_tree;
 mod btree;
@@ -62,7 +62,7 @@ mod tests {
     use std::iter::FromIterator;
     use test::Bencher;
 
-    const LIST_ITEMS: u64 = 15_000;
+    const LIST_ITEMS: u64 = 1_000;
 
     fn new_device_with_id(id: u64) -> IoTDevice {
         new_device_with_id_path(id, "")
