@@ -59,5 +59,7 @@ is a software engineer with a very diverse background. After working in a small 
 
 Since then, Claus' roles have shifted toward customer-facing roles in the IoT database-technology start-up crate.io and, most recently, Microsoft. There, he hosts a podcast, writes code together with customers, and blogs about the solutions arising from these engagements. For more than 5 years, Claus has implemented software to help customers innovate, achieve, and maintain success.
 
+Check out his blog at [blog.x5ff.xyz](https://blog.x5ff.xyz)!
+
 ### Suggestions and Feedback
 [Click here](https://docs.google.com/forms/d/e/1FAIpQLSdy7dATC6QmEL81FIUuymZ0Wy9vH1jHkvpY57OiMeKGqib_Ow/viewform) if you have any feedback or suggestions.
