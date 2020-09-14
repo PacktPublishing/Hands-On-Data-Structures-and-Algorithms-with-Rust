@@ -48,6 +48,15 @@ With the following software and hardware list you can run all code files present
 
 We also provide a PDF file that has color images of the screenshots/diagrams used in this book. [Click here to download it](https://www.packtpub.com/sites/default/files/downloads/9781788995528_ColorImages.pdf).
 
+### Errata
+* Chapter name: **Lists, Lists, and More Lists**, Section name: **Linked lists**, Page no: **58**
+
+  In other words, its a queue (or LIFO—short for Last In First Out) structure.
+
+  _should be replaced as_
+
+  In other words, its a queue (or FIFO—short for First In First Out) structure.
+
 ### Related products
 * Hands-On Concurrency with Rust [[Packt]](https://www.packtpub.com/application-development/hands-concurrency-rust?utm_source=github&utm_medium=repository&utm_campaign=9781788399975 ) [[Amazon]](https://www.amazon.com/dp/1788399978)
 
