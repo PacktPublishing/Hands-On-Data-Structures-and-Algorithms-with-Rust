@@ -79,7 +79,7 @@ impl BestTransactionLog {
                 let node = head.clone();
                 let mut result = None;
                 loop {
-                    if node.borrow().next[start_level].is_some() {
+                    if node.borrow().next[start_level].is_none() {
                         break;
                     }
                     start_level -= 1;
