@@ -1,3 +1,7 @@
+## [Get this title for $10 on Packt's Spring Sale](https://www.packt.com/B10269?utm_source=github&utm_medium=packt-github-repo&utm_campaign=spring_10_dollar_2022)
+-----
+For a limited period, all eBooks and Videos are only $10. All the practical content you need \- by developers, for developers
+
 # Hands-On Data Structures and Algorithms with Rust
 
 <a href="https://www.packtpub.com/application-development/hands-data-structures-and-algorithms-rust?utm_source=github&utm_medium=repository&utm_campaign=9781788995528 "><img src="https://d1ldz4te4covpm.cloudfront.net/sites/default/files/imagecache/ppv4_main_book_cover/B10269_cover.png" alt="Hands-On Data Structures and Algorithms with Rust" height="256px" align="right"></a>
